@@ -6,7 +6,7 @@ End-to-end data analytics project on the [Olist Brazilian E-Commerce dataset](ht
 
 1. **Data Cleaning (Excel)** — validated 9 raw CSVs for duplicates, standardized inconsistent text (e.g. `são paulo` → `sao paulo`). See [`docs/data_cleaning_notes.md`](docs/data_cleaning_notes.md).
 2. **Database Design & SQL Analysis (MySQL)** — built a 9-table relational schema (`Brazilian_E_Commerce_Database`) with primary/foreign keys, then ran 15+ queries covering revenue trends, RFM-style customer behavior, delivery performance, and seller rankings. See [`sql/`](sql/).
-3. **Python EDA** — data dictionary, cleaning pipeline, and exploratory analysis using pandas / SQLAlchemy / SQLite. See [`notebooks/`](notebooks/).
+3. **Python EDA** — data dictionary, cleaning pipeline, and exploratory analysis using pandas / SQLAlchemy / SQLite. See [`notebooks/`](python notebooks/).
 4. **Power BI Dashboard** — interactive dashboard built on the cleaned dataset. See [`powerbi/`](powerbi/).
 
 ## Key Findings
