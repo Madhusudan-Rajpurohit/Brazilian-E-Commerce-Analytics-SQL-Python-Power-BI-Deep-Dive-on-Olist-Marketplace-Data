@@ -1,92 +1,58 @@
-# SQL Analysis
+# Brazilian E-Commerce Analytics — Olist Dataset
 
-Schema and all queries: [`schema_and_queries.sql`](schema_and_queries.sql). Query outputs (as run against the MySQL database): [`results/`](results/).
+End-to-end data analytics project on the [Olist Brazilian E-Commerce dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce): data cleaning (Excel), a relational MySQL warehouse with SQL analysis, Python EDA, and a Power BI dashboard.
 
-Database: `Brazilian_E_Commerce_Database` — 9 tables (`customers`, `orders`, `order_items`, `payments`, `reviews`, `products`, `sellers`, `geolocations`, `category_translation`), primary keys on every table and foreign keys enforcing the order → customer → order_items → product/seller relationships.
+## Project Workflow
 
----
+1. **Data Cleaning (Excel)** — validated 9 raw CSVs for duplicates, standardized inconsistent text (e.g. `são paulo` → `sao paulo`). See [`docs/data_cleaning_notes.md`](docs/data_cleaning_notes.md).
+2. **Database Design & SQL Analysis (MySQL)** — built a 9-table relational schema (`Brazilian_E_Commerce_Database`) with primary/foreign keys, then ran 15+ queries covering revenue trends, RFM-style customer behavior, delivery performance, and seller rankings. See [`sql/`](sql/).
+3. **Python EDA** — data dictionary, cleaning pipeline, and exploratory analysis using pandas / SQLAlchemy / SQLite. See [`notebooks/`](notebooks/).
+4. **Power BI Dashboard** — interactive dashboard built on the cleaned dataset. See [`powerbi/`](powerbi/).
 
-## Revenue & Growth
+## Key Findings
 
-### 1. Monthly Revenue Trend
-`results/1__Monthly_revenue_trend.csv`
-Total revenue and order count by month, Sep 2016 – Aug 2018 (excludes canceled orders).
-**Insight:** Revenue scales from a soft-launch trickle in 2016 to a steady multi-million-real run rate by 2018 — useful as the baseline chart for any growth narrative.
+- Late deliveries strongly hurt satisfaction: 5-star orders arrived ~13.4 days ahead of estimate on average, vs. only 4.1 days for 1-star orders.
+- 8.11% of delivered orders arrived later than the estimated delivery date.
+- São Paulo state alone accounts for ~37.4% of total revenue.
+- Credit card is the dominant payment method at 77% of all payments (avg. R$163/payment); boleto accounts for 22% of value.
+- November 2017 saw a +53% month-over-month revenue spike (Black Friday effect).
+- Repeat purchase rate is low (~3.5%) across 96,096 unique customers and 99,441 orders — most customers order only once.
+- Average freight cost is R$19.99 per order item; 96,478 of ~99,441 orders were successfully delivered (625 canceled, 609 unavailable).
+- `bed_bath_table` leads on units sold (11,115 items) but `health_beauty` and `watches_gifts` lead on revenue — volume and margin are led by different categories.
 
-### 2. Month-over-Month Revenue Growth
-`results/3__Monthly_revenue_growth.csv`
-Same revenue series with `LAG()` to compute % growth month over month.
-**Insight:** November 2017 shows a **+53% MoM spike** — Black Friday. **Business action:** treat Nov as a demand-planning and inventory/staffing peak every year; a promo calendar that leans into this month has outsized ROI.
+Full query-by-query breakdown with results: [`sql/README.md`](sql/README.md).
 
-### 3. Top 10 Categories by Revenue
-`results/2__Top_10_categories_by_revenue.csv`
-**Insight:** `health_beauty`, `watches_gifts`, and `bed_bath_table` are the top 3 revenue categories, but `bed_bath_table` sells 11,115 items for ~R$1.04M while `watches_gifts` earns nearly as much (R$1.2M) from far fewer, higher-ticket items. **Business action:** these are two different plays — bed_bath_table is a volume/logistics category, watches_gifts is a margin/AOV category. Marketing spend and inventory strategy should differ accordingly.
+## Business Insights & Recommendations
 
-### 4. Best-Selling Category by Units
-`results/12_Category_with_the_most_items_sold.csv`
-`bed_bath_table` — 11,115 items, the highest unit volume of any category.
-**Insight:** Highest volume ≠ highest revenue category (see #3) — a reminder to always pair units-sold with revenue-per-category before allocating warehouse space or ad budget.
+- **Delivery speed is the #1 satisfaction lever.** The gap between 5★ orders (delivered ~13 days early on average) and 1★ orders (delivered ~4 days early) is the strongest pattern in the whole dataset. Tightening delivery estimates or investing in faster carriers for at-risk regions should move review scores directly — this is a logistics decision with a measurable CX payoff, not just an ops metric.
+- **Retention, not acquisition, is the biggest untapped lever.** Only ~3.5% of customers ever place a second order. A post-purchase email flow, a second-purchase discount, or a loyalty program targeted at the small cohort of repeat buyers (some ordered 7–17+ times) could lift lifetime value meaningfully without spending more on acquisition.
+- **São Paulo justifies dedicated infrastructure.** At ~37% of revenue and 2.5x the next-largest state, a regional fulfillment hub or dedicated carrier contract for SP would cut delivery times where it matters most, while thinner states are better served by demand-generation or seller-recruitment campaigns.
+- **Plan inventory and staffing around November.** The +53% Black Friday revenue spike is predictable and recurring — treating it as an annual peak-planning event (stock, warehouse staffing, customer support capacity) reduces the risk that a demand surge turns into more late deliveries and lower review scores.
+- **Payment-method concentration is a risk worth watching.** 77% of payment volume rides on a single rail (credit card). Boleto users spend similarly per order but may face more purchase friction (it requires a bank visit/transfer in Brazil) — worth testing as a possible cause of the low repeat-purchase rate in that segment.
+- **Thin seller supply caps category growth.** Ranking sellers within each category surfaces categories served by only 1–2 active sellers — these are natural targets for seller-recruitment efforts, since demand in a category can't convert to revenue without supply to fill it.
 
-### 5. Revenue by Customer State
-`results/8__Revenue_by_state.csv`
-**Insight:** São Paulo (SP) alone drives **~37% of total revenue** (R$5.9M of ~R$15.8M), more than 2.5x the next state (RJ). **Business action:** SP justifies a dedicated regional fulfillment hub to cut delivery time; underperforming states (long tail below RJ/MG/RS/PR) are candidates for targeted regional marketing or seller-recruitment drives to build supply where demand is thin.
+## Repository Structure
 
-### 6. Top 5 Most Expensive Products Sold
-`results/9__Top_5_most_expensive_products_ever_sold.csv`
-**Insight:** Top single-item price is ~R$6,735. These are outliers worth a manual look — high-value items carry higher fraud, damage, and return risk and may justify special handling/insurance in fulfillment.
+```
+├── sql/
+│   ├── schema_and_queries.sql   # schema, keys, and all 15 analysis queries
+│   ├── results/                 # query output CSVs
+│   └── README.md                # query-by-query writeup with business insights
+├── notebooks/          # Python EDA notebook
+├── powerbi/            # .pbix dashboard file
+├── docs/               # Data cleaning notes & data dictionary
+└── README.md
+```
 
----
+## Dataset
 
-## Customers
+Raw CSVs are not included in this repo due to size. Download them directly from Kaggle: [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce).
 
-### 7. Unique Customers vs. Total Orders
-`results/13_Unique_customers_vs__total_orders.csv`
-96,096 unique customers → 99,441 orders.
-**Insight:** Implied repeat-purchase rate is only **~3.5%** — the overwhelming majority of customers buy exactly once. **Business action:** this is the single biggest growth lever available. Post-purchase email flows, loyalty incentives, or a second-purchase discount could meaningfully lift LTV, since acquisition (not retention) is currently doing almost all the work.
+## Tools Used
 
-### 8. Top 5 Customers by Lifetime Spend
-`results/14__Top_5_customers_by_total_spend.csv`
-**Insight:** The single highest-spending customer (R$13,664) did it in **one order**, not many — reinforcing that this marketplace is acquisition-driven, not loyalty-driven. A VIP/white-glove program for large single-order buyers could still be worth testing even without repeat behavior.
+MySQL · Python (pandas, SQLAlchemy, SQLite) · Power BI · Excel
 
-### 9. Customer Order Recency & Frequency
-`results/15__First_and_most_recent_order_date_per_customer.csv`
-First/most recent order date and order count per customer — the raw material for RFM segmentation.
-**Insight:** A small set of customers do order 7–17+ times over a year — these are the seed list for a "most loyal customers" retention or referral campaign.
+## Author
 
----
-
-## Delivery & Satisfaction
-
-### 10. Late Delivery Rate
-`results/5__deleivary_late.csv`
-**8.11%** of delivered orders arrived after the estimated delivery date.
-**Insight:** Roughly 1 in 12 orders breaks its delivery promise. **Business action:** this is a concrete, trackable OKR — even a 2–3 point reduction in late-delivery rate, given the finding below, would likely move review scores measurably.
-
-### 11. Delivery Delay vs. Review Score
-`results/6__Delivery_delay_vs_review_score.csv`
-Avg delivery delay (negative = early) by review score: 1★ = -4.06 days, 5★ = -13.39 days.
-**Insight:** This is the strongest relationship in the dataset — **early delivery is the single clearest driver of a 5-star review.** **Business action:** logistics performance should be treated as a customer-satisfaction lever, not just an ops metric. Setting more conservative (achievable) estimated delivery dates, or investing in faster carriers for at-risk regions, is likely to raise review scores directly.
-
-### 12. Average Freight Cost per Order
-`results/11__Average_freight_cost_per_order.csv`
-Average freight cost: **R$19.99** per order item.
-**Insight:** Combined with the state-revenue breakdown (#5), freight cost as a % of order value is likely highest for distant/low-density states — worth a follow-up query before deciding on free-shipping thresholds by region.
-
-### 13. Order Status Breakdown
-`results/10__Order_count_by_status.csv`
-96,478 delivered vs. 625 canceled vs. 609 unavailable vs. 314 invoiced (of ~99,441 total).
-**Insight:** Cancellations and "unavailable" together are a small (~1.2%) but recoverable slice — worth checking whether these concentrate in specific categories/sellers (stock accuracy issue) or specific payment types (payment failure issue).
-
----
-
-## Payments & Sellers
-
-### 14. Payment Method Breakdown
-`results/7__Payment_method_breakdown_by_order_value_tier.csv`
-Credit card = 77% of payment volume (76,795 payments, R$12.5M); boleto = 22% of value.
-**Insight:** Heavy reliance on a single payment rail is a concentration risk. **Business action:** boleto users show similar avg. payment value to credit card users, so there's no evidence they're a "lower-value" segment — friction in the boleto flow (it requires a bank visit/transfer in Brazil) is a plausible, testable reason repeat purchases are so low for that segment.
-
-### 15. Top 3 Sellers per Category (Ranked)
-`results/4__Top_seller_per_category__ranked.csv`
-Window-function ranking (`RANK() OVER PARTITION BY category`) of sellers by revenue within each category.
-**Insight:** This surfaces category leaders and, by extension, categories with only 1–2 active sellers — those are expansion opportunities (seller-recruitment target list) since thin seller supply in a category likely caps revenue growth there regardless of demand.
+**Madhusudan Rajpurohit**
+[GitHub](https://github.com/Madhusudan-Rajpurohit) · rajpurohitmadhusudan5@gmail.com
